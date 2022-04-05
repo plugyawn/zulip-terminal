@@ -41,6 +41,7 @@ from zulipterminal.config.symbols import (
 from zulipterminal.config.ui_mappings import STATE_ICON
 from zulipterminal.helper import (
     Message,
+    TidiedUserInfo,
     asynch,
     format_string,
     get_unused_fence,
@@ -1501,6 +1502,12 @@ class MessageBox(urwid.Pile):
             ),
         }
         any_differences = any(different.values())
+        
+        data: TidiedUserInfo = self.model.get_user_info(self.message["sender_id"])
+        is_bot = data["is_bot"]
+        
+        if is_bot and not (self.message["sender_full_name"][-5:] == "<BOT>"):
+            self.message["sender_full_name"] = self.message["sender_full_name"] + " <BOT>"
 
         if any_differences:  # Construct content_header, if needed
             TextType = Dict[str, Tuple[Optional[str], str]]
