@@ -28,6 +28,7 @@ from zulipterminal.config.ui_mappings import (
     EDIT_MODE_CAPTIONS,
     ROLE_BY_ID,
     STATE_ICON,
+    BOT_ICON_BY_TYPE,
     STREAM_POST_POLICY,
 )
 from zulipterminal.config.ui_sizes import LEFT_WIDTH
@@ -749,6 +750,7 @@ class RightColumnView(urwid.Frame):
         users_btn_list = list()
         for user in users:
             status = user["status"]
+            bot = user["bot"]
             # Only include `inactive` users in search result.
             if status == "inactive" and not self.view.controller.is_in_editor_mode():
                 continue
@@ -761,7 +763,7 @@ class RightColumnView(urwid.Frame):
                     user=user,
                     controller=self.view.controller,
                     view=self.view,
-                    state_marker=STATE_ICON[status],
+                    state_marker=STATE_ICON[status] if not bot else STATE_ICON["active"],
                     color=f"user_{status}",
                     count=unread_count,
                     is_current_user=is_current_user,

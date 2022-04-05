@@ -1486,6 +1486,13 @@ class MessageBox(urwid.Pile):
             }
             for key, msg in dict(this=self.message, last=self.last_message).items()
         }
+                       
+        data: TidiedUserInfo = self.model.get_user_info(self.message["sender_id"])
+        is_bot = data["is_bot"]
+        
+        if is_bot and not (self.message["sender_full_name"][-5:] == "<BOT>"):
+            self.message["sender_full_name"] = self.message["sender_full_name"] + " <BOT>"
+
         different = {  # How this message differs from the previous one
             "recipients": recipient_header is not None,
             "author": message["this"]["author"] != message["last"]["author"],
@@ -1502,13 +1509,7 @@ class MessageBox(urwid.Pile):
             ),
         }
         any_differences = any(different.values())
-        
-        data: TidiedUserInfo = self.model.get_user_info(self.message["sender_id"])
-        is_bot = data["is_bot"]
-        
-        if is_bot and not (self.message["sender_full_name"][-5:] == "<BOT>"):
-            self.message["sender_full_name"] = self.message["sender_full_name"] + " <BOT>"
-
+ 
         if any_differences:  # Construct content_header, if needed
             TextType = Dict[str, Tuple[Optional[str], str]]
             text_keys = ("author", "star", "time", "status")
@@ -1522,7 +1523,7 @@ class MessageBox(urwid.Pile):
                 user = self.model.user_dict.get(email, None)
                 # TODO: Currently status of bots are shown as `inactive`.
                 # Render bot users' status with bot marker as a follow-up
-                status = user.get("status", "inactive") if user else "inactive"
+                status = user.get("status", "bot") if user else "bot"
 
                 # The default text['status'] value is (None, ' ')
                 if status in STATE_ICON:
