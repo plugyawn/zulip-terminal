@@ -33,12 +33,15 @@ from zulipterminal.config.symbols import (
     MESSAGE_CONTENT_MARKER,
     MESSAGE_HEADER_DIVIDER,
     QUOTED_TEXT_MARKER,
+    STREAM_MARKER_PRIVATE,
+    STREAM_MARKER_PUBLIC,
     STREAM_TOPIC_SEPARATOR,
     TIME_MENTION_MARKER,
 )
-from zulipterminal.config.ui_mappings import STATE_ICON, STREAM_ACCESS_TYPE
+from zulipterminal.config.ui_mappings import STATE_ICON
 from zulipterminal.helper import (
     Message,
+    TidiedUserInfo,
     asynch,
     format_string,
     get_unused_fence,
@@ -65,7 +68,6 @@ class _MessageEditState(NamedTuple):
 
 
 DELIMS_MESSAGE_COMPOSE = "\t\n;"
-
 
 class WriteBox(urwid.Pile):
     def __init__(self, view: Any) -> None:
@@ -211,7 +213,21 @@ class WriteBox(urwid.Pile):
             recipient_info = ""
 
         self.send_next_typing_update = datetime.now()
-        self.to_write_box = ReadlineEdit("To: ", edit_text=recipient_info)
+
+        try:
+            recipient_ID = int(
+                recipient_info[
+                    recipient_info.find("user") + 4 : recipient_info.find("@")
+                ]
+            )
+            data: TidiedUserInfo = self.model.get_user_info(recipient_ID)
+            last_active = data["last_active"]
+        except TypeError or ValueError:
+            last_active = ""
+
+        self.to_write_box = ReadlineEdit(
+            "To: ", edit_text=recipient_info + ", last seen on " + last_active
+        )
         self.to_write_box.enable_autocomplete(
             func=self._to_box_autocomplete,
             key=primary_key_for_command("AUTOCOMPLETE"),
@@ -430,10 +446,11 @@ class WriteBox(urwid.Pile):
         stream_marker = INVALID_MARKER
         color = "general_bar"
         if self.model.is_valid_stream(new_text):
-            stream_id = self.model.stream_id_from_name(new_text)
-            stream_access_type = self.model.stream_access_type(stream_id)
-            stream_marker = STREAM_ACCESS_TYPE[stream_access_type]["icon"]
-            stream = self.model.stream_dict[stream_id]
+            stream = self.model.stream_dict[self.model.stream_id_from_name(new_text)]
+            if stream["invite_only"]:
+                stream_marker = STREAM_MARKER_PRIVATE
+            else:
+                stream_marker = STREAM_MARKER_PUBLIC
             color = stream["color"]
         self.header_write_box[self.FOCUS_HEADER_PREFIX_STREAM].set_text(
             (color, stream_marker)
@@ -1499,6 +1516,15 @@ class MessageBox(urwid.Pile):
         }
         any_differences = any(different.values())
 
+
+        data: TidiedUserInfo = self.model.get_user_info(self.message["sender_id"])
+        is_bot = data["is_bot"]
+        
+       
+        if is_bot and not (self.message["sender_full_name"][-5:] == "<BOT>"):
+            self.message["sender_full_name"] = self.message["sender_full_name"] + " <BOT>"
+
+
         if any_differences:  # Construct content_header, if needed
             TextType = Dict[str, Tuple[Optional[str], str]]
             text_keys = ("author", "star", "time", "status")
@@ -1546,6 +1572,9 @@ class MessageBox(urwid.Pile):
             self.message["content"] = self.message["content"].replace(
                 "/me", f"<strong>{self.message['sender_full_name']}</strong>", 1
             )
+
+
+    
 
         # Transform raw message content into markup (As needed by urwid.Text)
         content, self.message_links, self.time_mentions = self.transform_content(
