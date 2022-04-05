@@ -6,6 +6,7 @@ from zulipterminal.config.symbols import (
     STATUS_IDLE,
     STATUS_INACTIVE,
     STATUS_OFFLINE,
+    BOT_MARKER
 )
 
 
@@ -22,6 +23,7 @@ STATE_ICON = {
     "idle": STATUS_IDLE,
     "offline": STATUS_OFFLINE,
     "inactive": STATUS_INACTIVE,
+    "bot": BOT_MARKER,
 }
 
 
@@ -32,6 +34,12 @@ BOT_TYPE_BY_ID = {
     4: "Embedded Bot",
 }
 
+BOT_ICON_BY_TYPE = {
+    1: BOT_MARKER,
+    2: BOT_MARKER,
+    3: BOT_MARKER,
+    4: BOT_MARKER,
+}
 
 ROLE_BY_ID: Dict[Optional[int], Dict[str, str]] = {
     100: {"bool": "is_owner", "name": "Owner"},
