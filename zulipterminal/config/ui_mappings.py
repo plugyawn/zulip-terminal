@@ -11,6 +11,7 @@ from zulipterminal.config.symbols import (
     STREAM_MARKER_PRIVATE,
     STREAM_MARKER_PUBLIC,
     STREAM_MARKER_WEB_PUBLIC,
+    BOT_MARKER
 )
 
 
@@ -27,6 +28,7 @@ STATE_ICON = {
     "idle": STATUS_IDLE,
     "offline": STATUS_OFFLINE,
     "inactive": STATUS_INACTIVE,
+    "bot": BOT_MARKER
 }
 
 

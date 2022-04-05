@@ -17,6 +17,7 @@ TIME_MENTION_MARKER = "⏱ "  # Other tested options are: '⧗' and '⧖'.
 MUTE_MARKER = "M"
 STATUS_ACTIVE = "●"
 STATUS_IDLE = "◒"
+BOT_MARKER = "🤖"
 STATUS_OFFLINE = "○"
 STATUS_INACTIVE = "•"
 AUTOHIDE_TAB_LEFT_ARROW = "❰"

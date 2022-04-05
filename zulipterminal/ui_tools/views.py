@@ -20,13 +20,14 @@ from zulipterminal.config.symbols import (
     CHECK_MARK,
     COLUMN_TITLE_BAR_LINE,
     PINNED_STREAMS_DIVIDER,
+    STREAM_MARKER_PRIVATE,
+    STREAM_MARKER_PUBLIC,
 )
 from zulipterminal.config.ui_mappings import (
     BOT_TYPE_BY_ID,
     EDIT_MODE_CAPTIONS,
     ROLE_BY_ID,
     STATE_ICON,
-    STREAM_ACCESS_TYPE,
     STREAM_POST_POLICY,
 )
 from zulipterminal.config.ui_sizes import LEFT_WIDTH
@@ -748,6 +749,7 @@ class RightColumnView(urwid.Frame):
         users_btn_list = list()
         for user in users:
             status = user["status"]
+            bot = user["bot"]
             # Only include `inactive` users in search result.
             if status == "inactive" and not self.view.controller.is_in_editor_mode():
                 continue
@@ -760,7 +762,7 @@ class RightColumnView(urwid.Frame):
                     user=user,
                     controller=self.view.controller,
                     view=self.view,
-                    state_marker=STATE_ICON[status],
+                    state_marker=STATE_ICON[status] if not bot else STATE_ICON["active"],
                     color=f"user_{status}",
                     count=unread_count,
                     is_current_user=is_current_user,
@@ -1338,11 +1340,7 @@ class StreamInfoView(PopUpView):
                 stream_policy = STREAM_POST_POLICY[1]
 
         total_members = len(stream["subscribers"])
-
-        stream_access_type = controller.model.stream_access_type(stream_id)
-        type_of_stream = STREAM_ACCESS_TYPE[stream_access_type]["description"]
-        stream_marker = STREAM_ACCESS_TYPE[stream_access_type]["icon"]
-
+        type_of_stream = "Private" if stream["invite_only"] else "Public"
         availability_of_history = (
             "Public to Users"
             if stream["history_public_to_subscribers"]
@@ -1357,6 +1355,9 @@ class StreamInfoView(PopUpView):
             "Stream created recently" if weekly_traffic is None else str(weekly_traffic)
         )
 
+        stream_marker = (
+            STREAM_MARKER_PRIVATE if stream["invite_only"] else STREAM_MARKER_PUBLIC
+        )
         title = f"{stream_marker} {stream['name']}"
         rendered_desc = stream["rendered_description"]
         self.markup_desc, message_links, _ = MessageBox.transform_content(

@@ -36,7 +36,7 @@ from zulipterminal.api_types import (
     Subscription,
 )
 from zulipterminal.config.keys import primary_key_for_command
-from zulipterminal.config.ui_mappings import ROLE_BY_ID, StreamAccessType
+from zulipterminal.config.ui_mappings import ROLE_BY_ID
 from zulipterminal.helper import (
     Message,
     NamedEmojiData,
@@ -892,6 +892,7 @@ class Model:
                     "email": user["email"],
                     "user_id": user["user_id"],
                     "status": "active",
+                    "bot" : False
                 }
                 continue
             email = user["email"]
@@ -920,6 +921,7 @@ class Model:
                 aggregate_status = "offline"
                 for client in presences[email].items():
                     client_name = client[0]
+                    
                     status = client[1]["status"]
                     timestamp = client[1]["timestamp"]
                     if client_name == "aggregated":
@@ -948,7 +950,14 @@ class Model:
                 "email": email,
                 "user_id": user["user_id"],
                 "status": status,
+                "bot" : False
             }
+
+            if user["is_bot"]:
+                self.user_dict[user["email"]] = {
+                    "status": "bot",
+                }
+
             self._all_users_by_id[user["user_id"]] = user
             self.user_id_email_dict[user["user_id"]] = email
 
@@ -959,7 +968,8 @@ class Model:
                 "full_name": bot["full_name"],
                 "email": email,
                 "user_id": bot["user_id"],
-                "status": "inactive",
+                "status": "",
+                "bot" : True
             }
             self._cross_realm_bots_by_id[bot["user_id"]] = bot
             self._all_users_by_id[bot["user_id"]] = bot
@@ -1018,7 +1028,7 @@ class Model:
                     "name": stream["name"],
                     "id": stream["stream_id"],
                     "color": stream["color"],
-                    "stream_access_type": self.stream_access_type(stream["stream_id"]),
+                    "invite_only": stream["invite_only"],
                     "description": stream["description"],
                 }
             )
@@ -1092,16 +1102,6 @@ class Model:
             if stream["name"] == stream_name:
                 return stream_id
         raise RuntimeError("Invalid stream name.")
-
-    def stream_access_type(self, stream_id: int) -> StreamAccessType:
-        if stream_id not in self.stream_dict:
-            raise RuntimeError("Invalid stream id.")
-        stream = self.stream_dict[stream_id]
-        if stream.get("is_web_public", False):
-            return "web-public"
-        if stream["invite_only"]:
-            return "private"
-        return "public"
 
     def is_pinned_stream(self, stream_id: int) -> bool:
         return stream_id in [stream["id"] for stream in self.pinned_streams]
