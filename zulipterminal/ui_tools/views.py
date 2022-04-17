@@ -329,6 +329,7 @@ class StreamsView(urwid.Frame):
         )
         self.search_lock = threading.Lock()
         self.empty_search = False
+        check_lights = True
 
     @asynch
     def update_streams(self, search_box: Any, new_text: str) -> None:
