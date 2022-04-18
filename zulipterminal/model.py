@@ -52,6 +52,7 @@ from zulipterminal.helper import (
     set_count,
 )
 from zulipterminal.platform_code import notify
+from zulipterminal.ui_tools.boxes import MessageBox
 from zulipterminal.ui_tools.utils import create_msg_box_list
 
 
@@ -1332,6 +1333,7 @@ class Model:
                     to_hide.string = "(...)" if empty_header else " (...)"
 
                     spoiler_tag.unwrap()
+                soup = MessageBox.soup_to_formatted_soup(soup.find("body"))
                 text = soup.text
 
             return notify(
