@@ -53,6 +53,7 @@ from zulipterminal.helper import (
 )
 from zulipterminal.platform_code import notify
 from zulipterminal.ui_tools.utils import create_msg_box_list
+from zulipterminal.ui_tools.boxes import MessageBox
 
 
 OFFLINE_THRESHOLD_SECS = 140
@@ -1318,6 +1319,7 @@ class Model:
                 text = content
             else:
                 soup = BeautifulSoup(content, "lxml")
+
                 for spoiler_tag in soup.find_all(
                     "div", attrs={"class": "spoiler-block"}
                 ):
@@ -1332,6 +1334,7 @@ class Model:
                     to_hide.string = "(...)" if empty_header else " (...)"
 
                     spoiler_tag.unwrap()
+                soup = MessageBox.soup_to_formatted_soup(soup.find(name="body"))
                 text = soup.text
 
             return notify(

@@ -51,9 +51,9 @@ from zulipterminal.helper import (
 )
 from zulipterminal.server_url import near_message_url
 from zulipterminal.ui_tools.buttons import EditModeButton
-from zulipterminal.ui_tools.tables import render_table
+from zulipterminal.ui_tools.tables import render_table, parse_html_table
 from zulipterminal.urwid_types import urwid_Size
-
+from zulipterminal.platform_code import notify
 
 if typing.TYPE_CHECKING:
     from zulipterminal.model import Model
@@ -1184,6 +1184,25 @@ class MessageBox(urwid.Pile):
             )
         else:
             return text_widget, footlinks_width
+
+    @classmethod
+    def soup_to_formatted_soup(self, soup:Any)->Any:
+        conversion_parameter = False
+        for element in soup:
+            if isinstance(element, Tag):
+                tag = element.name
+                tag_attrs = element.attrs
+                tag_classes = tag_attrs.get("class", [])
+                tag_text = element.text
+            if conversion_parameter:
+                conversion_parameter = False
+                continue
+            if tag == "table":
+                column_alignment, cells = parse_html_table(element)
+                table_dimensions = [len(cells[0]), len(cells)]
+                soup.find("table").replaceWith(BeautifulSoup(f"<p>[{table_dimensions[0]}×{table_dimensions[1]} table attached]</p", "lxml").p)
+                conversion_parameter = True
+        return soup
 
     @classmethod
     def soup2markup(
