@@ -51,7 +51,7 @@ from zulipterminal.helper import (
 )
 from zulipterminal.server_url import near_message_url
 from zulipterminal.ui_tools.buttons import EditModeButton
-from zulipterminal.ui_tools.tables import render_table, parse_html_table
+from zulipterminal.ui_tools.tables import parse_html_table, render_table
 from zulipterminal.urwid_types import urwid_Size
 
 
