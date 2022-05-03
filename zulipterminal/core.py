@@ -145,6 +145,7 @@ class Controller:
 
         spinner = spinning_cursor()
         sys.stdout.write("\033[92mWelcome to Zulip.\033[0m\n")
+        sys.stdout.write(f"Running on {PLATFORM}")
         while not hasattr(self, "view"):
             next_spinner = "Loading " + next(spinner)
             sys.stdout.write(next_spinner)
